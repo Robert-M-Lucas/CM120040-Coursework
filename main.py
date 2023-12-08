@@ -1,8 +1,8 @@
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, UTC
 from enum import Enum
-from typing import Callable, Optional, List
+from typing import Callable, Optional, Tuple, List
 
 conn = sqlite3.connect("table.db")
 
@@ -117,7 +117,7 @@ class DateRange:
     start: datetime = datetime.now()
     end: datetime = None
 
-    def get_condition_or_none(self, column: str) -> Optional[(str, [datetime])]:
+    def get_condition_or_none(self, column: str) -> Optional[Tuple[str, List[datetime]]]:
         if self.start is None and self.end is None:
             return None
         elif self.end is None:
@@ -244,26 +244,42 @@ class FlightSearchOptions:
         r = self.departure_time.get_condition_or_none("departure_time")
         if r is not None:
             conditions.append(r[0])
-            arguments.append(r[1])
+            arguments += r[1]
 
         r = self.arrival_time.get_condition_or_none("arrival_time")
         if r is not None:
             conditions.append(r[0])
-            arguments.append(r[1])
+            arguments += r[1]
 
-        if len(conditions) == 0:
+        if len(conditions) == 0 or True:
             conditions = ""
         else:
-            conditions = "WHERE" + " AND ".join(conditions)
+            conditions = "WHERE " + " AND ".join(conditions)
+
+        print(conditions)
 
         rows = conn.execute(f"""
             SELECT id, departure_time, arrival_time, source_id, destination_id FROM flights {conditions}
         """).fetchmany(self.count)
 
         table = [["ID", "Departure Time", "Arrival Time", "Source", "Destination"]]
-        for row in rows:
-            table.append([row.id, ])
 
+        for i, row in enumerate(rows):
+            if i == self.count:
+                break
+            table.append([
+                str(row[0]),
+                str(dt_format(datetime.fromtimestamp(row[1] / 1000, UTC))),
+                str(dt_format(datetime.fromtimestamp(row[2] / 1000, UTC))),
+                str(row[3]),
+                str(row[4]),
+            ])
+
+        print_table(table)
+
+        if len(rows) == 0:
+            print("[NO DATA]")
+        print()
 
 
 def flight_options():
