@@ -117,9 +117,13 @@ def get_aircraft_selection(conn: sqlite3.Connection, base_selection: set[int]) -
             return selection
 
 
-def modify_flight_with_id(conn: sqlite3.Connection, flight_id: int):
+def modify_flight(conn: sqlite3.Connection, flight_id=None):
+    if flight_id is None:
+        print("Enter flight ID:")
+        flight_id = util.choose_number()
+
     while True:
-        row = conn.execute("SELECT source_id, destination_id, departure_time, arrival_time FROM flights WHERE id = ?", (flight_id,)).fetchone()
+        row = conn.execute("SELECT id, source_id, destination_id, departure_time, arrival_time FROM flights WHERE id = ?", (flight_id,)).fetchone()
         if row is None:
             print("Invalid ID")
             print()
@@ -140,6 +144,7 @@ def modify_flight_with_id(conn: sqlite3.Connection, flight_id: int):
         util.print_table(table)
         if len(rows) == 0:
             print("[NO PILOTS]")
+        print()
 
         choice = util.choices("Select an option", [
             "Change Source",
@@ -152,5 +157,3 @@ def modify_flight_with_id(conn: sqlite3.Connection, flight_id: int):
             "Delete Flight",
             "Done"
         ])
-
-

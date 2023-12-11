@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 
 
@@ -19,6 +19,17 @@ def choices(heading: str, options: list[str]) -> int:
     print(heading)
     print("\n".join([str(i + 1) + ". " + t for i, t in enumerate(options)]))
     return choose_number_from_range(1, len(options))
+
+
+def choose_number() -> int:
+    while True:
+        try:
+            choice = int(input("> "))
+            print()
+        except ValueError:
+            print("Invalid input")
+            continue
+        return choice
 
 
 def choose_number_from_range(minimum: int, maximum: int) -> int:

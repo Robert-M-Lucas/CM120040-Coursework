@@ -149,8 +149,12 @@ class FlightSearchOptions:
                 self.count = choice
                 break
         elif c == 8: self.ascending = not self.ascending
-        elif c == 9: pass  # Modify/View/Delete flight given an ID
-        elif c == 10: pass  # Add flight
+        elif c == 9:
+            db_queries.modify_flight(conn)
+        elif c == 10:
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO flights (source_id, destination_id, departure_time, arrival_time, aircraft_id) VALUES (?,?,?,?,?)", (0, 0, 0, 0, 0))
+            db_queries.modify_flight(conn, cursor.lastrowid)
         elif c == 11: return False
 
         return True

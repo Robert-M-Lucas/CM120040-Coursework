@@ -4,19 +4,19 @@ import sqlite3
 def initialise_db(conn: sqlite3.Connection):
     conn.execute("""
     CREATE TABLE IF NOT EXISTS aircraft (
-        id INTEGER NOT NULL PRIMARY KEY,
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL
     )
     """)
     conn.execute("""
     CREATE TABLE IF NOT EXISTS destinations (
-        id INTEGER NOT NULL PRIMARY KEY,
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL
     )
     """)
     conn.execute("""
     CREATE TABLE IF NOT EXISTS flights (
-        id INTEGER NOT NULL PRIMARY KEY,
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         source_id INTEGER NOT NULL,
         destination_id INTEGER NOT NULL,
         departure_time DATETIME NOT NULL,
@@ -29,7 +29,7 @@ def initialise_db(conn: sqlite3.Connection):
     """)
     conn.execute("""
     CREATE TABLE IF NOT EXISTS pilots (
-        id INTEGER NOT NULL PRIMARY KEY,
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         surname TEXT NOT NULL
     )
@@ -41,4 +41,8 @@ def initialise_db(conn: sqlite3.Connection):
         PRIMARY KEY (pilot_id, flight_id)
     )
     """)
+
+    conn.execute("INSERT INTO aircraft (id, name) VALUES (?, ?)", (0, "Undefined"))
+    conn.execute("INSERT INTO destinations (id, name) VALUES (?, ?)", (0, "Undefined"))
+
     conn.commit()
