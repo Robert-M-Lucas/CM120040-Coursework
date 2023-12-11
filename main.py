@@ -3,129 +3,30 @@ from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from enum import Enum
 from typing import Callable, Optional, Tuple, List
+import db_initialisation
+import db_queries
+import util
+from db_queries import get_destinations_from_id, get_pilot_from_id, get_aircraft_from_id
+from util import print_table, choices, get_datetime_or_none, dt_format
 
 conn = sqlite3.connect("table.db")
-
-conn.execute("""
-CREATE TABLE IF NOT EXISTS aircraft (
-    id INTEGER NOT NULL PRIMARY KEY,
-    name STRING NOT NULL
-)
-""")
-conn.execute("""
-CREATE TABLE IF NOT EXISTS destinations (
-    id INTEGER NOT NULL PRIMARY KEY,
-    name STRING NOT NULL
-)
-""")
-conn.execute("""
-CREATE TABLE IF NOT EXISTS flights (
-    id INTEGER NOT NULL PRIMARY KEY,
-    source_id INTEGER NOT NULL,
-    destination_id INTEGER NOT NULL,
-    departure_time DATETIME NOT NULL,
-    arrival_time DATETIME NOT NULL,
-    aircraft INTEGER NOT NULL,
-    FOREIGN KEY (aircraft) REFERENCES aircraft(id),
-    FOREIGN KEY (source_id) REFERENCES destinations(id),
-    FOREIGN KEY (destination_id) REFERENCES destinations(id)
-)
-""")
-conn.execute("""
-CREATE TABLE IF NOT EXISTS pilots (
-    id INTEGER NOT NULL PRIMARY KEY,
-    name STRING NOT NULL,
-    surname STRING NOT NULL
-)
-""")
-conn.execute("""
-CREATE TABLE IF NOT EXISTS pilot_flights (
-    pilot_id INTEGER NOT NULL,
-    flight_id INTEGER NOT NULL,
-    PRIMARY KEY (pilot_id, flight_id)
-)
-""")
-conn.commit()
-
-
-def print_table(table: [[str]]):
-    widths = [0 for _ in range(len(table[0]))]
-
-    for row in table:
-        for i, s in enumerate(row):
-            widths[i] = max(widths[i], len(s))
-
-    for row in table:
-        for i, s in enumerate(row):
-            print(s + " " * (widths[i] - len(s)), end="    ")
-        print()
-
-
-
-def choices(heading: str, options: [str]) -> int:
-    while True:
-        print(heading)
-        print("\n".join([str(i + 1) + ". " + t for i, t in enumerate(options)]))
-
-        try:
-            choice = int(input("> "))
-            print()
-            if choice < 1 or choice > len(options):
-                raise ValueError
-        except ValueError:
-            print("Invalid input")
-            continue
-
-        return choice
-
-
-def get_datetime_or_none() -> Optional[datetime]:
-    while True:
-        print("Enter either the date and time in the format 'dd/mm/yyyy hh:mm' or 'None'")
-        date_str = input("> ")
-        print()
-        if date_str.lower() == "none": return None
-
-        try:
-            return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
-        except ValueError:
-            print("Invalid input")
-
-
-def dt_format(dt: datetime) -> str:
-    return dt.strftime("%d/%m/%Y %H:%M")
-
-
-def get_destinations_from_id(destination_id: int) -> str:
-    global conn
-    return conn.execute("SELECT name FROM destinations WHERE id=?", (destination_id,)).fetchone().name
-
-
-def get_pilot_from_id(pilot_id: int) -> str:
-    global conn
-    row = conn.execute("SELECT (name, surname) FROM pilots WHERE id=?", (pilot_id,)).fetchone()
-    return row.name + " " + row.surname
-
-
-def get_aircraft_from_id(aircraft_id: int) -> str:
-    global conn
-    return conn.execute("SELECT (name) FROM aircraft WHERE id=?", (aircraft_id,)).fetchone().name
+db_initialisation.initialise_db(conn)
 
 
 @dataclass
 class DateRange:
-    start: datetime = datetime.now()
+    start: datetime = field(default_factory=lambda: datetime.now())
     end: datetime = None
 
-    def get_condition_or_none(self, column: str) -> Optional[Tuple[str, List[datetime]]]:
+    def get_condition_or_none(self, column: str) -> Optional[tuple[str, list[int]]]:
         if self.start is None and self.end is None:
             return None
         elif self.end is None:
-            return f"{column} > ?", [self.start]
+            return f"{column} > ?", [int(self.start.timestamp())]
         elif self.start is None:
-            return f"{column} < ?", [self.end]
+            return f"{column} < ?", [int(self.end.timestamp())]
         else:
-            return f"{column} > ? AND {column} < ?", [self.start, self.end]
+            return f"{column} > ? AND {column} < ?", [int(self.start.timestamp()), int(self.end.timestamp())]
 
     def modify(self):
         def time_or_none(dt: datetime) -> str:
@@ -163,16 +64,35 @@ class MultiSelectionType(Enum):
 @dataclass
 class MultiSelection:
     selection_type: MultiSelectionType
-    selections: [int] = field(default_factory=list) 
-    
+    selections: set[int] = field(default_factory=list)
+
+    def get_condition_or_none(self) -> Optional[tuple[str, list[int]]]:
+        if len(self.selections) == 0: return None
+
+        id_text = ""
+        if self.selection_type == MultiSelectionType.DESTINATION:
+            return f"destination_id in ({", ".join(["?" for _ in range(len(self.selections))])})", list(self.selections)
+        elif self.selection_type == MultiSelectionType.AIRCRAFT:
+            return f"aircraft_id in ({", ".join(["?" for _ in range(len(self.selections))])})", list(self.selections)
+        elif self.selection_type == MultiSelectionType.PILOT:
+            return f"id in (SELECT flight_id FROM pilot_flights WHERE pilot_id in ({", ".join(["?" for _ in range(len(self.selections))])}))", list(self.selections)
+
     def modify(self):
-        pass
+        global conn
+        if self.selection_type == MultiSelectionType.DESTINATION:
+            self.selections = db_queries.get_destination_selection(conn, self.selections)
+        elif self.selection_type == MultiSelectionType.PILOT:
+            self.selections = db_queries.get_pilot_selection(conn, self.selections)
+        elif self.selection_type == MultiSelectionType.AIRCRAFT:
+            self.selections = db_queries.get_aircraft_selection(conn, self.selections)
     
     def to_string(self) -> str:
-        def selection_to_string(sel: [int], f: Callable[[int], str]) -> str:
+        global conn
+
+        def selection_to_string(sel: set[int], f: Callable[[sqlite3.Connection, int], str]) -> str:
             s = "Any"
             if len(sel) != 0:
-                s = ", ".join(map(f, sel))
+                s = ", ".join(map(lambda x: f(conn, x), sel))
             return s
         
         g = lambda f: selection_to_string(self.selections, f)
@@ -194,10 +114,6 @@ class FlightSearchOptions:
     ascending: bool = True
 
     def choices(self) -> int:
-        order_str = "Date Ascending"
-        if not self.ascending:
-            order_str = "Date Descending"
-
         c = choices("Select an option:", [
             f"Change Departure Time Range - {self.departure_time.to_string()}",
             f"Change Arrival Time Range - {self.arrival_time.to_string()}",
@@ -206,9 +122,9 @@ class FlightSearchOptions:
             f"Change Pilots - {self.pilots.to_string()}",
             f"Change Aircraft - {self.aircraft.to_string()}",
             f"Change Results to Display - {self.count}",
-            f"Change Result Order - {order_str}",
+            f"Change Result Order - {"Date Ascending" if self.ascending else "Date Descending"}",
             f"Modify/View/Delete Flight with ID",
-            f"Add Flight"
+            f"Add Flight",
             f"Return"
         ])
 
@@ -217,7 +133,8 @@ class FlightSearchOptions:
         elif c == 3: self.sources.modify()
         elif c == 4: self.destinations.modify()
         elif c == 5: self.pilots.modify()
-        elif c == 6:
+        elif c == 6: self.aircraft.modify()
+        elif c == 7:
             while True:
                 print("Choose an amount of results to display:")
                 choice = input("> ")
@@ -231,9 +148,10 @@ class FlightSearchOptions:
                     continue
                 self.count = choice
                 break
-        elif c == 7: pass  # Modify/View/Delete flight given an ID
-        elif c == 8: pass  # Add flight
-        elif c == 9: return False
+        elif c == 8: self.ascending = not self.ascending
+        elif c == 9: pass  # Modify/View/Delete flight given an ID
+        elif c == 10: pass  # Add flight
+        elif c == 11: return False
 
         return True
 
@@ -241,44 +159,32 @@ class FlightSearchOptions:
         conditions = []
         arguments = []
 
-        r = self.departure_time.get_condition_or_none("departure_time")
-        if r is not None:
-            conditions.append(r[0])
-            arguments += r[1]
+        temp = [
+            self.departure_time.get_condition_or_none("departure_time"),
+            self.arrival_time.get_condition_or_none("arrival_time"),
+            self.sources.get_condition_or_none(),
+            self.destinations.get_condition_or_none(),
+            self.pilots.get_condition_or_none()
+        ]
 
-        r = self.arrival_time.get_condition_or_none("arrival_time")
-        if r is not None:
-            conditions.append(r[0])
-            arguments += r[1]
+        for r in temp:
+            if r is not None:
+                conditions.append(r[0])
+                arguments += r[1]
 
-        if len(conditions) == 0 or True:
+        if len(conditions) == 0:
             conditions = ""
         else:
             conditions = "WHERE " + " AND ".join(conditions)
 
-        print(conditions)
-
         rows = conn.execute(f"""
             SELECT id, departure_time, arrival_time, source_id, destination_id FROM flights {conditions}
-        """).fetchmany(self.count)
+        """, arguments).fetchmany(self.count)
 
-        table = [["ID", "Departure Time", "Arrival Time", "Source", "Destination"]]
-
-        for i, row in enumerate(rows):
-            if i == self.count:
-                break
-            table.append([
-                str(row[0]),
-                str(dt_format(datetime.fromtimestamp(row[1] / 1000, UTC))),
-                str(dt_format(datetime.fromtimestamp(row[2] / 1000, UTC))),
-                str(row[3]),
-                str(row[4]),
-            ])
-
-        print_table(table)
+        util.print_flight_rows(rows, self.count)
 
         if len(rows) == 0:
-            print("[NO DATA]")
+            print("[NO DATA FOR CRITERIA]")
         print()
 
 
@@ -286,7 +192,7 @@ def flight_options():
     options = FlightSearchOptions()
     options.display_flights()
 
-    while not options.choices():
+    while options.choices():
         options.display_flights()
 
 
