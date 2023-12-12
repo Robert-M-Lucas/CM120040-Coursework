@@ -33,3 +33,8 @@ def get_pilot_selection(conn: sqlite3.Connection, base_selection: set[int], assi
 
         if util.add_or_remove_ids(selection, all_ids, assignment):
             return selection
+
+
+def get_pilots_for_flight(conn: sqlite3.Connection, flight_id: int) -> set[int]:
+    pilots = conn.execute("SELECT pilot_id from pilot_flights WHERE flight_id = ?", (flight_id,)).fetchall()
+    return {p[0] for p in pilots}

@@ -19,8 +19,14 @@ class FlightData:
     aircraft_id: Optional[int] = None
     pilots: filters.MultiSelection = field(default_factory=lambda: filters.MultiSelection(filters.MultiSelectionType.PILOT))
 
-    def is_complete(self) -> bool:
-        return self.source_id is not None and self.destination_id is not None and self.departure_time is not None and self.arrival_time is not None and self.aircraft_id is not None
+    def check(self) -> Optional[str]:
+        if self.source_id is None or self.destination_id is None or self.departure_time is None or self.arrival_time is None or self.aircraft_id is None:
+            return "Some data hasn't been filled in"
+        if len(self.pilots.selection) == 0:
+            return "No pilots assigned to flight"
+        if self.arrival_time < self.departure_time:
+            return "Arrival time is before departure time - no time travelling allowed"
+        return None
 
 
 def modify_flight(conn: sqlite3.Connection, flight_id=None):
@@ -36,9 +42,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
             print()
             return
 
-        pilots = conn.execute("SELECT pilot_id from pilot_flights WHERE flight_id = ?", (flight_id,)).fetchall()
-
-        current_pilots = {x[0] for x in pilots}
+        current_pilots = db_pilots.get_pilots_for_flight(conn, flight_id)
 
         data = FlightData(
             flight_row[0], flight_row[1],
@@ -57,6 +61,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
             f"Change Aircraft - {None if data.aircraft_id is None else db_aircraft.get_aircraft_from_id(conn, data.aircraft_id)}",
             f"Delete Flight",
             f"Done",
+            f"Cancel"
         ])
 
         if choice == 1: data.source_id = db_destinations.get_destination(conn)
@@ -64,22 +69,25 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
         elif choice == 3: data.departure_time = util.get_datetime()
         elif choice == 4: data.arrival_time = util.get_datetime()
         elif choice == 5: data.pilots.modify(conn, True)
-        elif choice == 7: data.aircraft_id = db_aircraft.get_aircraft(conn)
-        elif choice == 8:
+        elif choice == 6: data.aircraft_id = db_aircraft.get_aircraft(conn)
+        elif choice == 7:
             if flight_id is not None:
                 conn.execute("DELETE FROM flights WHERE id = ?", (flight_id,))
+                util.ask_commit(conn)
             return
-        else:
-            if not data.is_complete():
-                print("Missing data")
+        elif choice == 8:
+            check = data.check()
+            if check is not None:
+                print(check)
                 print()
+                continue
             if flight_id is None:
                 cursor = conn.cursor()
                 cursor.execute(
                     "INSERT INTO flights (source_id, destination_id, departure_time, arrival_time, aircraft_id)  VALUES (?, ?, ?, ?, ?)",
                     (
                         data.source_id, data.destination_id,
-                        int(data.departure_time.timestamp()), int(data.arrival_time.timestamp()),
+                        int(data.departure_time.timestamp() * 1000), int(data.arrival_time.timestamp() * 1000),
                         data.aircraft_id
                     )
                 )
@@ -89,7 +97,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
                     "UPDATE flights SET (source_id, destination_id, departure_time, arrival_time, aircraft_id) = (?, ?, ?, ?, ?) WHERE id = ?",
                     (
                         data.source_id, data.destination_id,
-                        int(data.departure_time.timestamp()), int(data.arrival_time.timestamp()),
+                        int(data.departure_time.timestamp() * 1000), int(data.arrival_time.timestamp() * 1000),
                         data.aircraft_id,
                         flight_id
                     )
@@ -106,4 +114,10 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
             for p in all_pilots:
                 conn.execute("INSERT INTO pilot_flights (pilot_id, flight_id) VALUES (?, ?)", (p, flight_id))
 
+            util.ask_commit(conn)
             return
+        elif choice == 9:
+            c2 = util.choices("Are you sure you don't want to save your changes?", ["Yes", "No"])
+            if c2 == 1:
+                return
+            

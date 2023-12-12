@@ -1,5 +1,10 @@
+import sqlite3
 from datetime import datetime, UTC
 from typing import Optional
+
+import db_aircraft
+import db_destinations
+import db_pilots
 
 
 def print_table(table: list[list[str]]):
@@ -87,19 +92,30 @@ def dt_format(dt: datetime) -> str:
     return dt.strftime("%d/%m/%Y %H:%M")
 
 
-def print_flight_rows(rows, limit):
-    table = [["ID", "Departure Time", "Arrival Time", "Source", "Destination"]]
+def print_flight_rows(conn: sqlite3.Connection, rows, limit):
+    table = [["ID", "Departure Time", "Arrival Time", "Source", "Destination", "Aircraft", "Pilot(s)"]]
 
     for i, row in enumerate(rows):
         if i == limit:
             break
+
+        pilots = list(db_pilots.get_pilots_for_flight(conn, row[0]))
         table.append([
             str(row[0]),
             str(dt_format(datetime.fromtimestamp(row[1] / 1000, UTC))),
             str(dt_format(datetime.fromtimestamp(row[2] / 1000, UTC))),
-            str(row[3]),
-            str(row[4]),
+            db_destinations.get_destinations_from_id(conn, row[3]),
+            db_destinations.get_destinations_from_id(conn, row[4]),
+            db_aircraft.get_aircraft_from_id(conn, row[5]),
+            db_pilots.get_pilot_from_id(conn, pilots[0]) if len(pilots) > 0 else "[NO PILOTS]"
         ])
+
+        if len(pilots) > 1:
+            for p in pilots[1:]:
+                table.append([
+                    "", "", "", "", "", "",
+                    db_pilots.get_pilot_from_id(conn, p)
+                ])
 
     print_table(table)
 
@@ -128,3 +144,17 @@ def add_or_remove_ids(selection: set[int], all_ids: list[int], assignment: bool)
         return True
     else:
         return True
+
+
+def ask_commit(conn: sqlite3.Connection):
+    print("Do you want to save changes now? (Y/N)")
+    while True:
+        choice = input("> ").lower()
+        print()
+        if choice == "y":
+            conn.commit()
+            return
+        elif choice == "n":
+            return
+        print("Invalid input")
+
