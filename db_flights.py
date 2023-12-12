@@ -53,7 +53,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
             f"Change Destination - {None if data.destination_id is None else db_destinations.get_destinations_from_id(conn, data.destination_id)}",
             f"Change Departure Time - {None if data.departure_time is None else util.dt_format(data.departure_time)}",
             f"Change Arrival Time - {None if data.arrival_time is None else util.dt_format(data.arrival_time)}",
-            f"Change Pilots - {data.pilots.to_string()}",
+            f"Change Pilots - {data.pilots.to_string(conn, True)}",
             f"Change Aircraft - {None if data.aircraft_id is None else db_aircraft.get_aircraft_from_id(conn, data.aircraft_id)}",
             f"Delete Flight",
             f"Done",
@@ -63,7 +63,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
         elif choice == 2: data.destination_id = db_destinations.get_destination(conn)
         elif choice == 3: data.departure_time = util.get_datetime()
         elif choice == 4: data.arrival_time = util.get_datetime()
-        elif choice == 5: data.pilots = data.pilots.modify(True)
+        elif choice == 5: data.pilots.modify(conn, True)
         elif choice == 7: data.aircraft_id = db_aircraft.get_aircraft(conn)
         elif choice == 8:
             if flight_id is not None:

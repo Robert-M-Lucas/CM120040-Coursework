@@ -28,10 +28,10 @@ class FlightSearchOptions:
         c = choices("Select an option:", [
             f"Change Departure Time Range - {self.departure_time.to_string()}",
             f"Change Arrival Time Range - {self.arrival_time.to_string()}",
-            f"Change Sources - {self.sources.to_string()}",
-            f"Change Destinations - {self.destinations.to_string()}",
-            f"Change Pilots - {self.pilots.to_string()}",
-            f"Change Aircraft - {self.aircraft.to_string()}",
+            f"Change Sources - {self.sources.to_string(conn)}",
+            f"Change Destinations - {self.destinations.to_string(conn)}",
+            f"Change Pilots - {self.pilots.to_string(conn)}",
+            f"Change Aircraft - {self.aircraft.to_string(conn)}",
             f"Change Results to Display - {self.count}",
             f"Change Result Order - {"Date Ascending" if self.ascending else "Date Descending"}",
             f"Modify/View/Delete Flight with ID",
@@ -41,10 +41,10 @@ class FlightSearchOptions:
 
         if c == 1: self.departure_time.modify()
         elif c == 2: self.arrival_time.modify()
-        elif c == 3: self.sources.modify()
-        elif c == 4: self.destinations.modify()
-        elif c == 5: self.pilots.modify()
-        elif c == 6: self.aircraft.modify()
+        elif c == 3: self.sources.modify(conn)
+        elif c == 4: self.destinations.modify(conn)
+        elif c == 5: self.pilots.modify(conn)
+        elif c == 6: self.aircraft.modify(conn)
         elif c == 7:
             while True:
                 print("Choose an amount of results to display:")

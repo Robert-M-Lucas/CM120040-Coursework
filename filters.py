@@ -4,6 +4,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Callable
 
+import db_aircraft
+import db_destinations
+import db_pilots
 import db_queries
 from db_aircraft import get_aircraft_from_id
 from db_destinations import get_destinations_from_id
@@ -76,8 +79,7 @@ class MultiSelection:
         elif self.selection_type == MultiSelectionType.PILOT:
             return f"id in (SELECT flight_id FROM pilot_flights WHERE pilot_id in ({", ".join(["?" for _ in range(len(self.selection))])}))", list(self.selection)
 
-    def modify(self, assignment = False):
-        global conn
+    def modify(self, conn: sqlite3.Connection, assignment=False):
         if self.selection_type == MultiSelectionType.DESTINATION:
             self.selection = db_destinations.get_destination_selection(conn, self.selection, assignment)
         elif self.selection_type == MultiSelectionType.PILOT:
@@ -85,11 +87,9 @@ class MultiSelection:
         elif self.selection_type == MultiSelectionType.AIRCRAFT:
             self.selection = db_aircraft.get_aircraft_selection(conn, self.selection, assignment)
 
-    def to_string(self, assignment=False) -> str:
-        global conn
-
-        def selection_to_string(sel: set[int], f: Callable[[sqlite3.Connection, int], str], assignment: bool) -> str:
-            if assignment:
+    def to_string(self, conn: sqlite3.Connection, assignment=False) -> str:
+        def selection_to_string(sel: set[int], f: Callable[[sqlite3.Connection, int], str], a: bool) -> str:
+            if a:
                 s = "None"
             else:
                 s = "Any"
