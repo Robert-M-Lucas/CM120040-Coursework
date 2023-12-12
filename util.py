@@ -71,6 +71,18 @@ def get_datetime_or_none() -> Optional[datetime]:
             print("Invalid input")
 
 
+def get_datetime() -> datetime:
+    while True:
+        print("Enter either the date and time in the format 'dd/mm/yyyy hh:mm'")
+        date_str = input("> ")
+        print()
+
+        try:
+            return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+        except ValueError:
+            print("Invalid input")
+
+
 def dt_format(dt: datetime) -> str:
     return dt.strftime("%d/%m/%Y %H:%M")
 
@@ -90,3 +102,25 @@ def print_flight_rows(rows, limit):
         ])
 
     print_table(table)
+
+
+def add_or_remove_ids(selection: set[int], all_ids: list[int]) -> bool:
+    choice = choices("Add or Remove", ["Add", "Remove", "Allow Any", "Done"])
+    if choice == 1:
+        print("Select ID to add")
+        to_add = choose_number_from_options(all_ids)
+        if to_add in selection:
+            print("ID already selected\n")
+        else:
+            selection.add(to_add)
+    elif choice == 2:
+        print("Select ID to remove")
+        try:
+            selection.remove(choose_number_from_options(all_ids))
+        except KeyError:
+            print("ID not already selected\n")
+    elif choice == 3:
+        selection.clear()
+        return True
+    else:
+        return True

@@ -42,7 +42,7 @@ def initialise_db(conn: sqlite3.Connection):
     )
     """)
 
-    conn.execute("INSERT INTO aircraft (id, name) VALUES (?, ?)", (0, "Undefined"))
-    conn.execute("INSERT INTO destinations (id, name) VALUES (?, ?)", (0, "Undefined"))
+    # conn.execute("INSERT INTO aircraft (id, name) VALUES (?, ?)", (0, "Undefined"))
+    # conn.execute("INSERT INTO destinations (id, name) VALUES (?, ?)", (0, "Undefined"))
 
     conn.commit()
