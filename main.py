@@ -1,20 +1,16 @@
 import sqlite3
 from dataclasses import dataclass, field
 from enum import Enum
+
+import db_flights
 import db_initialisation
 import db_queries
 import util
-from filters import DateRange, MultiSelection
+from filters import DateRange, MultiSelection, MultiSelectionType
 from util import choices
 
 conn = sqlite3.connect("table.db")
 db_initialisation.initialise_db(conn)
-
-
-class MultiSelectionType(Enum):
-    DESTINATION = 1
-    PILOT = 2
-    AIRCRAFT = 3
 
 
 @dataclass
@@ -65,11 +61,9 @@ class FlightSearchOptions:
                 break
         elif c == 8: self.ascending = not self.ascending
         elif c == 9:
-            db_queries.modify_flight(conn)
+            db_flights.modify_flight(conn)
         elif c == 10:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO flights (source_id, destination_id, departure_time, arrival_time, aircraft_id) VALUES (?,?,?,?,?)", (0, 0, 0, 0, 0))
-            db_queries.modify_flight(conn, cursor.lastrowid)
+            db_flights.modify_flight(conn, None)
         elif c == 11: return False
 
         return True
@@ -121,12 +115,13 @@ while True:
         "Pilots",
         "Aircraft",
         "Destinations",
-        "Quit"
+        "Save and Quit"
     ])
 
     if c == 1:
         flight_options()
     elif c == 5:
+        conn.commit()
         break
 
 conn.close()

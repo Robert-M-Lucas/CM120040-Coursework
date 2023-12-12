@@ -7,7 +7,7 @@ def get_aircraft_from_id(conn: sqlite3.Connection, aircraft_id: int) -> str:
     return conn.execute("SELECT name FROM aircraft WHERE id=?", (aircraft_id,)).fetchone()[0]
 
 
-def get_aircraft_selection(conn: sqlite3.Connection, base_selection: set[int]) -> set[int]:
+def get_aircraft_selection(conn: sqlite3.Connection, base_selection: set[int], assignment: bool) -> set[int]:
     selection = set(base_selection.copy())
     rows = conn.execute("SELECT id, name FROM aircraft").fetchall()
 
@@ -29,7 +29,7 @@ def get_aircraft_selection(conn: sqlite3.Connection, base_selection: set[int]) -
             print("[NO DATA]")
         print()
 
-        if util.add_or_remove_ids(selection, all_ids):
+        if util.add_or_remove_ids(selection, all_ids, assignment):
             return selection
 
 

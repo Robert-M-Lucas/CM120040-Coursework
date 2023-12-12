@@ -1,10 +1,13 @@
 import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 from typing import Optional, Callable
 
 import db_queries
-from main import MultiSelectionType
+from db_aircraft import get_aircraft_from_id
+from db_destinations import get_destinations_from_id
+from db_pilots import get_pilot_from_id
 
 from util import dt_format, choices, get_datetime_or_none
 
@@ -51,41 +54,50 @@ class DateRange:
             return f"From {dt_format(self.start)} to {dt_format(self.end)}"
 
 
+class MultiSelectionType(Enum):
+    DESTINATION = 1
+    PILOT = 2
+    AIRCRAFT = 3
+
+
 @dataclass
 class MultiSelection:
     selection_type: MultiSelectionType
-    selections: set[int] = field(default_factory=list)
+    selection: set[int] = field(default_factory=list)
 
     def get_condition_or_none(self) -> Optional[tuple[str, list[int]]]:
-        if len(self.selections) == 0: return None
+        if len(self.selection) == 0: return None
 
         id_text = ""
         if self.selection_type == MultiSelectionType.DESTINATION:
-            return f"destination_id in ({", ".join(["?" for _ in range(len(self.selections))])})", list(self.selections)
+            return f"destination_id in ({", ".join(["?" for _ in range(len(self.selection))])})", list(self.selection)
         elif self.selection_type == MultiSelectionType.AIRCRAFT:
-            return f"aircraft_id in ({", ".join(["?" for _ in range(len(self.selections))])})", list(self.selections)
+            return f"aircraft_id in ({", ".join(["?" for _ in range(len(self.selection))])})", list(self.selection)
         elif self.selection_type == MultiSelectionType.PILOT:
-            return f"id in (SELECT flight_id FROM pilot_flights WHERE pilot_id in ({", ".join(["?" for _ in range(len(self.selections))])}))", list(self.selections)
+            return f"id in (SELECT flight_id FROM pilot_flights WHERE pilot_id in ({", ".join(["?" for _ in range(len(self.selection))])}))", list(self.selection)
 
-    def modify(self):
+    def modify(self, assignment = False):
         global conn
         if self.selection_type == MultiSelectionType.DESTINATION:
-            self.selections = db_queries.get_destination_selection(conn, self.selections)
+            self.selection = db_destinations.get_destination_selection(conn, self.selection, assignment)
         elif self.selection_type == MultiSelectionType.PILOT:
-            self.selections = db_queries.get_pilot_selection(conn, self.selections)
+            self.selection = db_pilots.get_pilot_selection(conn, self.selection, assignment)
         elif self.selection_type == MultiSelectionType.AIRCRAFT:
-            self.selections = db_queries.get_aircraft_selection(conn, self.selections)
+            self.selection = db_aircraft.get_aircraft_selection(conn, self.selection, assignment)
 
-    def to_string(self) -> str:
+    def to_string(self, assignment=False) -> str:
         global conn
 
-        def selection_to_string(sel: set[int], f: Callable[[sqlite3.Connection, int], str]) -> str:
-            s = "Any"
+        def selection_to_string(sel: set[int], f: Callable[[sqlite3.Connection, int], str], assignment: bool) -> str:
+            if assignment:
+                s = "None"
+            else:
+                s = "Any"
             if len(sel) != 0:
                 s = ", ".join(map(lambda x: f(conn, x), sel))
             return s
 
-        g = lambda f: selection_to_string(self.selections, f)
+        g = lambda f: selection_to_string(self.selection, f, assignment)
 
         if self.selection_type == MultiSelectionType.DESTINATION: return g(get_destinations_from_id)
         elif self.selection_type == MultiSelectionType.PILOT: return g(get_pilot_from_id)

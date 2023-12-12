@@ -104,8 +104,12 @@ def print_flight_rows(rows, limit):
     print_table(table)
 
 
-def add_or_remove_ids(selection: set[int], all_ids: list[int]) -> bool:
-    choice = choices("Add or Remove", ["Add", "Remove", "Allow Any", "Done"])
+def add_or_remove_ids(selection: set[int], all_ids: list[int], assignment: bool) -> bool:
+    if not assignment:
+        choice = choices("Add or Remove", ["Add", "Remove", "Allow Any", "Done"])
+    else:
+        choice = choices("Add or Remove", ["Add", "Remove", "Remove All", "Done"])
+
     if choice == 1:
         print("Select ID to add")
         to_add = choose_number_from_options(all_ids)

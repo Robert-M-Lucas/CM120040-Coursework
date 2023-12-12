@@ -8,7 +8,7 @@ def get_pilot_from_id(conn: sqlite3.Connection, pilot_id: int) -> str:
     return row[0] + " " + row[1]
 
 
-def get_pilot_selection(conn: sqlite3.Connection, base_selection: set[int]) -> set[int]:
+def get_pilot_selection(conn: sqlite3.Connection, base_selection: set[int], assignment: bool) -> set[int]:
     selection = set(base_selection.copy())
     rows = conn.execute("SELECT id, name, surname FROM pilots").fetchall()
 
@@ -31,5 +31,5 @@ def get_pilot_selection(conn: sqlite3.Connection, base_selection: set[int]) -> s
             print("[NO DATA]")
         print()
 
-        if util.add_or_remove_ids(selection, all_ids):
+        if util.add_or_remove_ids(selection, all_ids, assignment):
             return selection
