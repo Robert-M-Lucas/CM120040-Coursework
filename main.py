@@ -2,6 +2,7 @@ import sqlite3
 
 import db_initialisation
 from flights import flight_options
+from others import others_options, OthersType
 from util import choices
 
 conn = sqlite3.connect("table.db")
@@ -18,7 +19,13 @@ while True:
     ])
 
     if c == 1:
-        flight_options()
+        flight_options(conn)
+    elif c == 2:
+        others_options(conn, OthersType.PILOTS)
+    elif c == 3:
+        others_options(conn, OthersType.AIRCRAFT)
+    elif c == 4:
+        others_options(conn, OthersType.DESTINATIONS)
     elif c == 5:
         conn.commit()
         break

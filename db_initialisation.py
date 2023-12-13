@@ -22,9 +22,9 @@ def initialise_db(conn: sqlite3.Connection):
         departure_time DATETIME NOT NULL,
         arrival_time DATETIME NOT NULL,
         aircraft_id INTEGER NOT NULL,
-        FOREIGN KEY (aircraft_id) REFERENCES aircraft(id),
-        FOREIGN KEY (source_id) REFERENCES destinations(id),
-        FOREIGN KEY (destination_id) REFERENCES destinations(id)
+        FOREIGN KEY (aircraft_id) REFERENCES aircraft(id) ON DELETE CASCADE,
+        FOREIGN KEY (source_id) REFERENCES destinations(id) ON DELETE CASCADE,
+        FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE CASCADE
     )
     """)
     conn.execute("""
@@ -38,6 +38,8 @@ def initialise_db(conn: sqlite3.Connection):
     CREATE TABLE IF NOT EXISTS pilot_flights (
         pilot_id INTEGER NOT NULL,
         flight_id INTEGER NOT NULL,
+        FOREIGN KEY (pilot_id) REFERENCES pilots(id) ON DELETE CASCADE,
+        FOREIGN KEY (flight_id) REFERENCES flights(id) ON DELETE CASCADE,
         PRIMARY KEY (pilot_id, flight_id)
     )
     """)
