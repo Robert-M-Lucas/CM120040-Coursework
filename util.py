@@ -149,6 +149,9 @@ def print_flight_rows(conn: sqlite3.Connection, rows, limit):
 
 
 def add_or_remove_ids(selection: set[int], all_ids: list[int], assignment: bool) -> bool:
+    """
+    Allows a user to add or remove ids from a selection given all the valid IDs
+    """
     if not assignment:
         choice = choices("Add or Remove", ["Add", "Remove", "Allow Any", "Done"])
     else:
@@ -161,20 +164,25 @@ def add_or_remove_ids(selection: set[int], all_ids: list[int], assignment: bool)
             print("ID already selected\n")
         else:
             selection.add(to_add)
+
     elif choice == 2:
         print("Select ID to remove")
         try:
             selection.remove(choose_number_from_options(all_ids))
         except KeyError:
             print("ID not already selected\n")
+
     elif choice == 3:
         selection.clear()
-        return True
     else:
         return True
 
 
 def ask_commit(conn: sqlite3.Connection):
+    """
+    Asks the user whether they want to commit and, if so,
+    commits the changes to the database
+    """
     print("Do you want to save changes now? (Y/N)")
     while True:
         choice = input("> ").lower()
@@ -188,8 +196,14 @@ def ask_commit(conn: sqlite3.Connection):
 
 
 def dt_to_db(date: datetime) -> int:
+    """
+    Converts a datetime object to an int with the SQLite3 DATETIME representation
+    """
     return int(date.timestamp() * 1000)
 
 
 def db_to_dt(timestamp: int) -> datetime:
+    """
+    Converts a SQLite3 DATETIME representation to a datetime object
+    """
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc)

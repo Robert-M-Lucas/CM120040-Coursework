@@ -18,7 +18,10 @@ class FlightSearchOptions:
     count: int = 5
     ascending: bool = True
 
-    def choices(self, conn: sqlite3.Connection) -> int:
+    def modify(self, conn: sqlite3.Connection) -> int:
+        """
+        Allow users to modify the search criteria or add/modify/delete flights
+        """
         c = choices("Select an option:", [
             f"Change Departure Time Range - {self.departure_time.to_string()}",
             f"Change Arrival Time Range - {self.arrival_time.to_string()}",
@@ -69,9 +72,13 @@ class FlightSearchOptions:
         return True
 
     def display_flights(self, conn: sqlite3.Connection):
+        """
+        Displays the flights given the current search options
+        """
         conditions = []
         arguments = []
 
+        # All search conditions
         temp = [
             self.departure_time.get_condition_or_none("departure_time"),
             self.arrival_time.get_condition_or_none("arrival_time"),
@@ -82,6 +89,7 @@ class FlightSearchOptions:
 
         for r in temp:
             if r is not None:
+                # Apply condition
                 conditions.append(r[0])
                 arguments += r[1]
 
@@ -104,8 +112,11 @@ class FlightSearchOptions:
 
 
 def flight_options(conn: sqlite3.Connection):
+    """
+    Allows users to view and modify flights
+    """
     options = FlightSearchOptions()
     options.display_flights(conn)
 
-    while options.choices(conn):
+    while options.modify(conn):
         options.display_flights(conn)

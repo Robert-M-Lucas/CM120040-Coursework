@@ -1,7 +1,9 @@
 import sqlite3
 
 
-def initialise_db(conn: sqlite3.Connection):
+def initialise_db() -> sqlite3.Connection:
+    """Initialises the database creating the database, tables and setting flags"""
+    conn = sqlite3.connect("table.db")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("""
     CREATE TABLE IF NOT EXISTS aircraft (
@@ -49,3 +51,4 @@ def initialise_db(conn: sqlite3.Connection):
     # conn.execute("INSERT INTO destinations (id, name) VALUES (?, ?)", (0, "Undefined"))
 
     conn.commit()
+    return conn

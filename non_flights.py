@@ -19,6 +19,10 @@ class NonFlightType(Enum):
 
 
 def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
+    """
+    Allows user to view, add and remove data from the aircraft, destination and pilots tables
+    """
+
     while True:
         if others_type == NonFlightType.AIRCRAFT:
             rows = conn.execute("SELECT id, name FROM aircraft").fetchall()
@@ -28,7 +32,7 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
             table = [["ID", "Name"]]
         else: # others_type == NonFlightType.PILOTS:
             rows = conn.execute("SELECT id, name, surname FROM pilots").fetchall()
-            table = [["ID", "Name", "Surname"]]
+            table = [["ID", "Name", "Surname"]]  # Extra column for pilots
 
         all_ids = []
         for row in rows:
@@ -85,6 +89,7 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                         (row[0],)
                     ).fetchall()
 
+                    # Flight will need to be deleted if last pilot is gone
                     if len(pilots_on_flight) == 1:
                         to_delete.append(row[0])
 
@@ -96,15 +101,18 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                     if c2 == 2: continue
 
                 conn.execute("DELETE FROM pilots WHERE id = ?", (_id,))
+
+                # Delete flights with no pilots
                 for flight_id in to_delete:
                     conn.execute("DELETE FROM flights WHERE id = ?", (flight_id,))
             else:
+                # Get flights that will be cascade deleted
                 if others_type == NonFlightType.AIRCRAFT:
                     deleted = list(map(
                         lambda x: x[0],
                         conn.execute("SELECT id FROM flights WHERE aircraft_id = ?", (_id,)).fetchall()
                     ))
-                elif others_type == NonFlightType.DESTINATIONS:
+                else:  # others_type == NonFlightType.DESTINATIONS:
                     deleted = list(map(
                         lambda x: x[0],
                         conn.execute(
@@ -113,16 +121,19 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                         ).fetchall()
                     ))
 
-                print(f"Deleting this {others_type.get_name().lower()} will result in {len(deleted)} flight(s) "
-                      f"(ID(s): {', '.join([str(d) for d in deleted])}) being deleted due to having no "
-                      f"{others_type.get_name().lower()}")
+                if len(deleted) > 0:
+                    print(f"Deleting this {others_type.get_name().lower()} will result in {len(deleted)} flight(s) "
+                          f"(ID(s): {', '.join([str(d) for d in deleted])}) being deleted due to having no "
+                          f"{others_type.get_name().lower()}")
 
-                c2 = util.choices("Are you sure you want to continue?", ["Yes", "No"])
-                if c2 == 2: continue
+                    c2 = util.choices("Are you sure you want to continue?", ["Yes", "No"])
+                    if c2 == 2: continue
+
                 if others_type == NonFlightType.AIRCRAFT:
                     conn.execute("DELETE FROM aircraft where id = ?", (_id,))
                 elif others_type == NonFlightType.DESTINATIONS:
                     conn.execute("DELETE FROM destinations where id = ?", (_id,))
+                # Flights will be deleted automatically
         # Done
         elif choice == 3:
             util.ask_commit(conn)

@@ -9,8 +9,7 @@ from util import choices
 
 if __name__ == '__main__':
     # Initialise connection
-    conn = sqlite3.connect("table.db")
-    db_initialisation.initialise_db(conn)
+    conn = db_initialisation.initialise_db()
 
     # Main loop
     while True:

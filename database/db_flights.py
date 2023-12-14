@@ -34,9 +34,9 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
     Modifies a flight with the given id. If none is passed in, a new flight is created.
     """
     current_pilots = None
-    if flight_id is None:
+    if flight_id is None:  # Create new flight
         data = FlightData()
-    else:
+    else:  # Load existing flight data
         flight_row = conn.execute(
             "SELECT source_id, destination_id, departure_time, arrival_time, aircraft_id FROM flights WHERE id = ?",
             (flight_id,)).fetchone()
@@ -73,18 +73,19 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
         elif choice == 4: data.arrival_time = util.get_datetime()
         elif choice == 5: data.pilots.modify(conn, True)
         elif choice == 6: data.aircraft_id = db_aircraft.get_aircraft(conn)
-        elif choice == 7:
+        elif choice == 7:  # Delete flight
             if flight_id is not None:
                 conn.execute("DELETE FROM flights WHERE id = ?", (flight_id,))
                 util.ask_commit(conn)
             return
-        elif choice == 8:
+        elif choice == 8:  # Done
             check = data.check()
-            if check is not None:
+            if check is not None:  # Failed check
                 print(check)
                 print()
                 continue
-            if flight_id is None:
+
+            if flight_id is None:  # New flight
                 cursor = conn.cursor()
                 cursor.execute(
                     "INSERT INTO flights (source_id, destination_id, departure_time, arrival_time, aircraft_id)  VALUES (?, ?, ?, ?, ?)",
@@ -95,7 +96,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
                     )
                 )
                 flight_id = cursor.lastrowid
-            else:
+            else:  # Update existing flight
                 conn.execute(
                     "UPDATE flights SET (source_id, destination_id, departure_time, arrival_time, aircraft_id) = (?, ?, ?, ?, ?) WHERE id = ?",
                     (
@@ -107,19 +108,22 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
                 )
 
             all_pilots: set[int] = data.pilots.selection.copy()
+            removed_pilots: set[int] = set()
             if current_pilots is not None:
                 for p in current_pilots:
                     try:
                         all_pilots.remove(p)
                     except KeyError:
-                        pass
+                        removed_pilots.add(p)
 
-            for p in all_pilots:
+            for p in all_pilots:  # Add new pilots
                 conn.execute("INSERT INTO pilot_flights (pilot_id, flight_id) VALUES (?, ?)", (p, flight_id))
+            for p in removed_pilots:  # Remove removed pilots
+                conn.execute("DELETE FROM pilot_flights WHERE pilot_id = ? AND flight_id = ?", (p, flight_id))
 
             util.ask_commit(conn)
             return
-        elif choice == 9:
+        elif choice == 9:  # Quit without saving
             c2 = util.choices("Are you sure you don't want to save your changes?", ["Yes", "No"])
             if c2 == 1:
                 return
