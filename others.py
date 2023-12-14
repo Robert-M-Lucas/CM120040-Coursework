@@ -79,7 +79,7 @@ def others_options(conn: sqlite3.Connection, others_type: OthersType):
                         to_delete.append(row[0])
 
                 if len(to_delete) > 0:
-                    print(f"Deleting this pilot will result in {len(to_delete)} flight(s) ({", ".join([str(d for d in to_delete)])}) being deleted due to having no pilot")
+                    print(f"Deleting this pilot will result in {len(to_delete)} flight(s) ({', '.join([str(d for d in to_delete)])}) being deleted due to having no pilot")
                     c2 = util.choices("Are you sure you want to continue?", ["Yes", "No"])
                     if c2 == 2: continue
                     conn.execute("DELETE FROM pilots WHERE id = ?", (id,))
@@ -91,7 +91,7 @@ def others_options(conn: sqlite3.Connection, others_type: OthersType):
                 elif others_type == OthersType.DESTINATIONS:
                     deleted = list(map(lambda x: x[0], conn.execute("SELECT id FROM flights WHERE source_id = ? OR destination_id = ?", (id, id)).fetchall()))
 
-                print(f"Deleting this {others_type.get_name().lower()} will result in {len(deleted)} flight(s) ({", ".join([str(d for d in deleted)])}) being deleted due to having no {others_type.get_name().lower()}")
+                print(f"Deleting this {others_type.get_name().lower()} will result in {len(deleted)} flight(s) ({', '.join([str(d for d in deleted)])}) being deleted due to having no {others_type.get_name().lower()}")
                 c2 = util.choices("Are you sure you want to continue?", ["Yes", "No"])
                 if c2 == 2: continue
 

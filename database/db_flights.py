@@ -2,9 +2,9 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 
-import db_aircraft
-import db_destinations
-import db_pilots
+from database import db_aircraft
+from database import db_destinations
+from database import db_pilots
 import filters
 import util
 from typing import Optional, List

@@ -2,9 +2,9 @@ import sqlite3
 from datetime import datetime, UTC
 from typing import Optional
 
-import db_aircraft
-import db_destinations
-import db_pilots
+from database import db_aircraft
+from database import db_destinations
+from database import db_pilots
 
 
 def print_table(table: list[list[str]]):

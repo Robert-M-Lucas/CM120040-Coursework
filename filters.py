@@ -4,13 +4,13 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Callable
 
-import db_aircraft
-import db_destinations
-import db_pilots
-import db_queries
-from db_aircraft import get_aircraft_from_id
-from db_destinations import get_destinations_from_id
-from db_pilots import get_pilot_from_id
+from database import db_aircraft
+from database import db_destinations
+from database import db_pilots
+from database import db_queries
+from database.db_aircraft import get_aircraft_from_id
+from database.db_destinations import get_destinations_from_id
+from database.db_pilots import get_pilot_from_id
 
 from util import dt_format, choices, get_datetime_or_none
 
@@ -73,11 +73,11 @@ class MultiSelection:
 
         id_text = ""
         if self.selection_type == MultiSelectionType.DESTINATION:
-            return f"destination_id in ({", ".join(["?" for _ in range(len(self.selection))])})", list(self.selection)
+            return f"destination_id in ({', '.join(['?' for _ in range(len(self.selection))])})", list(self.selection)
         elif self.selection_type == MultiSelectionType.AIRCRAFT:
-            return f"aircraft_id in ({", ".join(["?" for _ in range(len(self.selection))])})", list(self.selection)
+            return f"aircraft_id in ({', '.join(['?' for _ in range(len(self.selection))])})", list(self.selection)
         elif self.selection_type == MultiSelectionType.PILOT:
-            return f"id in (SELECT flight_id FROM pilot_flights WHERE pilot_id in ({", ".join(["?" for _ in range(len(self.selection))])}))", list(self.selection)
+            return f"id in (SELECT flight_id FROM pilot_flights WHERE pilot_id in ({', '.join(['?' for _ in range(len(self.selection))])}))", list(self.selection)
 
     def modify(self, conn: sqlite3.Connection, assignment=False):
         if self.selection_type == MultiSelectionType.DESTINATION:

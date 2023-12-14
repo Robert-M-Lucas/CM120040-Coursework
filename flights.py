@@ -1,7 +1,7 @@
 import sqlite3
 from dataclasses import dataclass, field
 
-import db_flights
+from database import db_flights
 import util
 from filters import DateRange, MultiSelection, MultiSelectionType
 from util import choices
@@ -27,7 +27,7 @@ class FlightSearchOptions:
             f"Change Pilots - {self.pilots.to_string(conn)}",
             f"Change Aircraft - {self.aircraft.to_string(conn)}",
             f"Change Results to Display - {self.count}",
-            f"Change Result Order - Departure Time {"Ascending" if self.ascending else "Descending"}",
+            f"Change Result Order - Departure Time {'Ascending' if self.ascending else 'Descending'}",
             f"View/Modify/Delete Flight",
             f"Add Flight",
             f"Return"

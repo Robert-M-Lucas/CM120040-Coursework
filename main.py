@@ -1,14 +1,16 @@
 import sqlite3
 
-import db_initialisation
+from database import db_initialisation
 from flights import flight_options
 from others import others_options, OthersType
 from util import choices
 
 if __name__ == '__main__':
+    # Initialise connection
     conn = sqlite3.connect("table.db")
     db_initialisation.initialise_db(conn)
 
+    # Main loop
     while True:
         c = choices("Select data:", [
             "Flights",
