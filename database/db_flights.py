@@ -1,6 +1,6 @@
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 
 from database import db_aircraft
 from database import db_destinations
@@ -46,7 +46,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
 
         data = FlightData(
             flight_row[0], flight_row[1],
-            datetime.fromtimestamp(flight_row[2] / 1000, UTC), datetime.fromtimestamp(flight_row[3] / 1000, UTC),
+            datetime.fromtimestamp(flight_row[2] / 1000, timezone.utc), datetime.fromtimestamp(flight_row[3] / 1000, timezone.utc),
             flight_row[4],
             filters.MultiSelection(filters.MultiSelectionType.PILOT, current_pilots.copy()),
         )

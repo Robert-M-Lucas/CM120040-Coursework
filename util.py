@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import Optional
 
 from database import db_aircraft
@@ -102,8 +102,8 @@ def print_flight_rows(conn: sqlite3.Connection, rows, limit):
         pilots = list(db_pilots.get_pilots_for_flight(conn, row[0]))
         table.append([
             str(row[0]),
-            str(dt_format(datetime.fromtimestamp(row[1] / 1000, UTC))),
-            str(dt_format(datetime.fromtimestamp(row[2] / 1000, UTC))),
+            str(dt_format(datetime.fromtimestamp(row[1] / 1000, timezone.utc))),
+            str(dt_format(datetime.fromtimestamp(row[2] / 1000, timezone.utc))),
             db_destinations.get_destinations_from_id(conn, row[3]),
             db_destinations.get_destinations_from_id(conn, row[4]),
             db_aircraft.get_aircraft_from_id(conn, row[5]),
