@@ -24,6 +24,11 @@ def get_destination_selection(conn: sqlite3.Connection, base_selection: set[int]
                 ]
             )
 
+        if len(all_ids) == 0:
+            print("No destinations - add more from main menu")
+            print()
+            return set()
+
         util.print_table(table)
         if len(rows) == 0:
             print("[NO DATA]")

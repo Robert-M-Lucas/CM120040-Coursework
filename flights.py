@@ -92,7 +92,7 @@ class FlightSearchOptions:
 
         rows = conn.execute(
             f"SELECT id, departure_time, arrival_time, source_id, destination_id, aircraft_id FROM flights "
-            f"{conditions} ORDER BY departure_time {"ASC" if self.ascending else "DESC"}",
+            f"{conditions} ORDER BY departure_time {'ASC' if self.ascending else 'DESC'}",
             arguments
         ).fetchmany(self.count)
 

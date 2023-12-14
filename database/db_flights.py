@@ -49,7 +49,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
 
         data = FlightData(
             flight_row[0], flight_row[1],
-            datetime.fromtimestamp(flight_row[2] / 1000, timezone.utc), datetime.fromtimestamp(flight_row[3] / 1000, timezone.utc),
+            util.db_to_dt(flight_row[2]), util.db_to_dt(flight_row[3]),
             flight_row[4],
             filters.MultiSelection(filters.MultiSelectionType.PILOT, current_pilots.copy()),
         )
@@ -90,7 +90,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
                     "INSERT INTO flights (source_id, destination_id, departure_time, arrival_time, aircraft_id)  VALUES (?, ?, ?, ?, ?)",
                     (
                         data.source_id, data.destination_id,
-                        int(data.departure_time.timestamp() * 1000), int(data.arrival_time.timestamp() * 1000),
+                        util.dt_to_db(data.departure_time), util.dt_to_db(data.arrival_time),
                         data.aircraft_id
                     )
                 )
@@ -100,7 +100,7 @@ def modify_flight(conn: sqlite3.Connection, flight_id=None):
                     "UPDATE flights SET (source_id, destination_id, departure_time, arrival_time, aircraft_id) = (?, ?, ?, ?, ?) WHERE id = ?",
                     (
                         data.source_id, data.destination_id,
-                        int(data.departure_time.timestamp() * 1000), int(data.arrival_time.timestamp() * 1000),
+                        util.dt_to_db(data.departure_time), util.dt_to_db(data.arrival_time),
                         data.aircraft_id,
                         flight_id
                     )

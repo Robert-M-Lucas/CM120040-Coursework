@@ -2,6 +2,7 @@ import sqlite3
 
 
 def initialise_db(conn: sqlite3.Connection):
+    conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("""
     CREATE TABLE IF NOT EXISTS aircraft (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

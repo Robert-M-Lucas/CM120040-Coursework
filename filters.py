@@ -4,6 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Callable
 
+import util
 from database import db_aircraft
 from database import db_destinations
 from database import db_pilots
@@ -23,9 +24,9 @@ class DateRange:
         if self.start is None and self.end is None:
             return None
         elif self.end is None:
-            return f"{column} > ?", [int(self.start.timestamp())]
+            return f"{column} > ?", [util.dt_to_db(self.start)]
         elif self.start is None:
-            return f"{column} < ?", [int(self.end.timestamp())]
+            return f"{column} < ?", [util.dt_to_db(self.end)]
         else:
             return f"{column} > ? AND {column} < ?", [int(self.start.timestamp()), int(self.end.timestamp())]
 

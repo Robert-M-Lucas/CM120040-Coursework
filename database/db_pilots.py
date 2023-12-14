@@ -5,6 +5,7 @@ import util
 
 def get_pilot_from_id(conn: sqlite3.Connection, pilot_id: int) -> str:
     row = conn.execute("SELECT name, surname FROM pilots WHERE id=?", (pilot_id,)).fetchone()
+    if row is None: return "[NO PILOT]"
     return row[0] + " " + row[1]
 
 
@@ -25,6 +26,11 @@ def get_pilot_selection(conn: sqlite3.Connection, base_selection: set[int], assi
                     "True" if row[0] in selection else "False"
                 ]
             )
+
+        if len(all_ids) == 0:
+            print("No pilots - add more from main menu")
+            print()
+            return set()
 
         util.print_table(table)
         if len(rows) == 0:

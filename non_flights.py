@@ -30,7 +30,9 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
             rows = conn.execute("SELECT id, name, surname FROM pilots").fetchall()
             table = [["ID", "Name", "Surname"]]
 
+        all_ids = []
         for row in rows:
+            all_ids.append(int(row[0]))
             if others_type == NonFlightType.PILOTS:
                 # ID, Name, Surname
                 table.append([str(row[0]), row[1], row[2]])
@@ -68,8 +70,7 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
         # Remove
         elif choice == 2:
             print("Enter ID:")
-            _id = input("> ")
-            print()
+            _id = util.choose_number_from_options(all_ids)
 
             if others_type == NonFlightType.PILOTS:
                 rows = conn.execute(
@@ -78,7 +79,6 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                 ).fetchall()
 
                 to_delete = []
-
                 for row in rows:
                     pilots_on_flight = conn.execute(
                         "SELECT pilot_id FROM pilot_flights WHERE flight_id = ?",
@@ -90,13 +90,14 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
 
                 if len(to_delete) > 0:
                     print(f"Deleting this pilot will result in {len(to_delete)} flight(s) "
-                          f"({', '.join([str(d for d in to_delete)])}) being deleted due to having no pilot")
+                          f"(ID(s): {', '.join([str(d) for d in to_delete])}) being deleted due to having no pilot")
 
                     c2 = util.choices("Are you sure you want to continue?", ["Yes", "No"])
                     if c2 == 2: continue
-                    conn.execute("DELETE FROM pilots WHERE id = ?", (_id,))
-                    for flight_id in to_delete:
-                        conn.execute("DELETE FROM flights WHERE id = ?", (flight_id,))
+
+                conn.execute("DELETE FROM pilots WHERE id = ?", (_id,))
+                for flight_id in to_delete:
+                    conn.execute("DELETE FROM flights WHERE id = ?", (flight_id,))
             else:
                 if others_type == NonFlightType.AIRCRAFT:
                     deleted = list(map(
@@ -113,7 +114,7 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                     ))
 
                 print(f"Deleting this {others_type.get_name().lower()} will result in {len(deleted)} flight(s) "
-                      f"({', '.join([str(d for d in deleted)])}) being deleted due to having no "
+                      f"(ID(s): {', '.join([str(d) for d in deleted])}) being deleted due to having no "
                       f"{others_type.get_name().lower()}")
 
                 c2 = util.choices("Are you sure you want to continue?", ["Yes", "No"])

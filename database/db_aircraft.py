@@ -23,6 +23,11 @@ def get_aircraft_selection(conn: sqlite3.Connection, base_selection: set[int], a
                 ]
             )
 
+        if len(all_ids) == 0:
+            print("No aircraft - add more from main menu")
+            print()
+            return set()
+
         util.print_table(table)
         if len(rows) == 0:
             print("[NO DATA]")
