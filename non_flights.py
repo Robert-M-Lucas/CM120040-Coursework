@@ -28,8 +28,8 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
             rows = conn.execute("SELECT id, name FROM aircraft").fetchall()
             table = [["ID", "Name"]]
         elif others_type == NonFlightType.DESTINATIONS:
-            rows = conn.execute("SELECT id, name FROM destinations").fetchall()
-            table = [["ID", "Name"]]
+            rows = conn.execute("SELECT id, code, name, latitude, longitude FROM destinations").fetchall()
+            table = [["ID", "Code", "Name", "Latitude", "Longitude"]]
         else: # others_type == NonFlightType.PILOTS:
             rows = conn.execute("SELECT id, name, surname FROM pilots").fetchall()
             table = [["ID", "Name", "Surname"]]  # Extra column for pilots
@@ -40,6 +40,9 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
             if others_type == NonFlightType.PILOTS:
                 # ID, Name, Surname
                 table.append([str(row[0]), row[1], row[2]])
+            elif others_type == NonFlightType.DESTINATIONS:
+                # ID, Code, Name, Lat, Long
+                table.append([str(row[0]), row[1], row[2], str(row[3]), str(row[4])])
             else:
                 # ID, Name
                 table.append([str(row[0]), row[1]])
@@ -57,6 +60,7 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
 
         # Add
         if choice == 1:
+            data = {}
             print("Enter name:")
             name = input("> ")
             print()
@@ -70,7 +74,21 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
             elif others_type == NonFlightType.AIRCRAFT:
                 conn.execute("INSERT INTO aircraft (name) VALUES (?) ", (name,))
             elif others_type == NonFlightType.DESTINATIONS:
-                conn.execute("INSERT INTO destinations (name) VALUES (?)", (name,))
+                print("Enter code:")
+                while True:
+                    code = input("> ")
+                    if len(code) == 0 or len(code) > 4:
+                        print("Code must be 1 - 4 characters")
+                        continue
+                    print()
+                    break
+
+                print("Enter latitude")
+                lat = util.choose_float()
+                print("Enter longitude")
+                long = util.choose_float()
+
+                conn.execute("INSERT INTO destinations (name, code, latitude, longitude) VALUES (?, ?, ?, ?)", (name, code.upper(), lat, long))
         # Remove
         elif choice == 2:
             print("Enter ID:")

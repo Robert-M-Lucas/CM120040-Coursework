@@ -46,6 +46,20 @@ def choose_number() -> int:
         return choice
 
 
+def choose_float() -> float:
+    """
+    Lets user select any float
+    """
+    while True:
+        try:
+            choice = float(input("> "))
+            print()
+        except ValueError:
+            print("Invalid input")
+            continue
+        return choice
+
+
 def choose_number_from_range(minimum: int, maximum: int) -> int:
     """
     Lets the user select a number from the given range (inclusive)
@@ -89,7 +103,8 @@ def get_datetime_or_none() -> Optional[datetime]:
         if date_str.lower() == "none": return None
 
         try:
-            return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+            dt = datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+            return dt
         except ValueError:
             print("Invalid input")
 
@@ -104,7 +119,23 @@ def get_datetime() -> datetime:
         print()
 
         try:
-            return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+            dt = datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+            return dt
+        except ValueError:
+            print("Invalid input")
+
+
+def get_datetime_no_date() -> datetime:
+    """
+    Returns an inputted datetime without prompting the user for a time
+    """
+    while True:
+        print("Enter either the date and time in the format 'dd/mm/yyyy'")
+        date_str = input("> ")
+        print()
+
+        try:
+            return datetime.strptime(date_str, "%d/%m/%Y")
         except ValueError:
             print("Invalid input")
 
@@ -199,7 +230,7 @@ def dt_to_db(date: datetime) -> int:
     """
     Converts a datetime object to an int with the SQLite3 DATETIME representation
     """
-    return int(date.timestamp() * 1000)
+    return int(date.astimezone(timezone.utc).timestamp() * 1000)
 
 
 def db_to_dt(timestamp: int) -> datetime:

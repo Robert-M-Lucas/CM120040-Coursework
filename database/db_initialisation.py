@@ -14,8 +14,18 @@ def initialise_db() -> sqlite3.Connection:
     conn.execute("""
     CREATE TABLE IF NOT EXISTS destinations (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        longitude REAL NOT NULL,
+        latitude REAL NOT NULL,
+        code VARCHAR(4) NOT NULL
     )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS pilots (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            surname TEXT NOT NULL
+        )
     """)
     conn.execute("""
     CREATE TABLE IF NOT EXISTS flights (
@@ -28,13 +38,6 @@ def initialise_db() -> sqlite3.Connection:
         FOREIGN KEY (aircraft_id) REFERENCES aircraft(id) ON DELETE CASCADE,
         FOREIGN KEY (source_id) REFERENCES destinations(id) ON DELETE CASCADE,
         FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE CASCADE
-    )
-    """)
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS pilots (
-        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        surname TEXT NOT NULL
     )
     """)
     conn.execute("""
