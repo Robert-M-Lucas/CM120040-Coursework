@@ -46,14 +46,16 @@ def choose_number() -> int:
         return choice
 
 
-def choose_float() -> float:
+def choose_float_range(minimum: float, maximum: float) -> float:
     """
-    Lets user select any float
+    Lets the user select a float from the given range (inclusive)
     """
     while True:
         try:
             choice = float(input("> "))
             print()
+            if choice < minimum or choice > maximum:
+                raise ValueError
         except ValueError:
             print("Invalid input")
             continue
@@ -104,6 +106,8 @@ def get_datetime_or_none() -> Optional[datetime]:
 
         try:
             dt = datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+            if dt < datetime.fromtimestamp(0.0):
+                raise ValueError
             return dt
         except ValueError:
             print("Invalid input")
@@ -120,24 +124,26 @@ def get_datetime() -> datetime:
 
         try:
             dt = datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+            if dt < datetime.fromtimestamp(0.0):
+                raise ValueError
             return dt
         except ValueError:
             print("Invalid input")
 
 
-def get_datetime_no_date() -> datetime:
-    """
-    Returns an inputted datetime without prompting the user for a time
-    """
-    while True:
-        print("Enter either the date and time in the format 'dd/mm/yyyy'")
-        date_str = input("> ")
-        print()
-
-        try:
-            return datetime.strptime(date_str, "%d/%m/%Y")
-        except ValueError:
-            print("Invalid input")
+# def get_datetime_no_date() -> datetime:
+#     """
+#     Returns an inputted datetime without prompting the user for a time
+#     """
+#     while True:
+#         print("Enter either the date and time in the format 'dd/mm/yyyy'")
+#         date_str = input("> ")
+#         print()
+#
+#         try:
+#             return datetime.strptime(date_str, "%d/%m/%Y")
+#         except ValueError:
+#             print("Invalid input")
 
 
 def dt_format(dt: datetime) -> str:

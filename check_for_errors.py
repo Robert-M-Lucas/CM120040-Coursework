@@ -56,14 +56,23 @@ def check_for_errors(conn: sqlite3.Connection):
     else:
         print("All flights have been assigned pilots with valid IDs")
 
-    # Flights with no pilots assigned to them
-    rows = conn.execute("SELECT flights.id, pilot_flights.pilot_id AS `frequency` FROM flights LEFT JOIN pilot_flights ON flights.id = pilot_flights.flight_id WHERE pilot_flights.pilot_id IS NULL").fetchall()
+    # Destinations with invalid lat/long
+    rows = conn.execute("SELECT id, name from destinations where latitude > 90 OR latitude < -90").fetchall()
     if len(rows) > 0:
-        print("The following flight IDs have no pilots assigned to them:")
+        print("The following flight IDs have an invalid latitude:")
         for row in rows:
-            print("\t" + str(row[0]))
+            print("\t" + str(row[0]) + " (" + row[1] + ")")
     else:
-        print("All flights have at least one pilot")
+        print("All destinations have valid latitudes")
+
+    # Contd.
+    rows = conn.execute("SELECT id, name from destinations where longitude > 180 OR longitude < -180").fetchall()
+    if len(rows) > 0:
+        print("The following flight IDs have an invalid longitude:")
+        for row in rows:
+            print("\t" + str(row[0]) + " (" + row[1] + ")")
+    else:
+        print("All destinations have valid longitude")
 
     print()
 

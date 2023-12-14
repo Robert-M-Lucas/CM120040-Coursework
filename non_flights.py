@@ -32,14 +32,14 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
             table = [["ID", "Code", "Name", "Latitude", "Longitude"]]
         else: # others_type == NonFlightType.PILOTS:
             rows = conn.execute("SELECT id, name, surname FROM pilots").fetchall()
-            table = [["ID", "Name", "Surname"]]  # Extra column for pilots
+            table = [["ID", "Name", "Surname", "Date Joined"]]  # Extra column for pilots
 
         all_ids = []
         for row in rows:
             all_ids.append(int(row[0]))
             if others_type == NonFlightType.PILOTS:
                 # ID, Name, Surname
-                table.append([str(row[0]), row[1], row[2]])
+                table.append([str(row[0]), row[1], row[2], util.dt_format(util.db_to_dt(row[3]))])
             elif others_type == NonFlightType.DESTINATIONS:
                 # ID, Code, Name, Lat, Long
                 table.append([str(row[0]), row[1], row[2], str(row[3]), str(row[4])])
@@ -84,9 +84,9 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                     break
 
                 print("Enter latitude")
-                lat = util.choose_float()
+                lat = util.choose_float_range(-90.0, 90.0)
                 print("Enter longitude")
-                long = util.choose_float()
+                long = util.choose_float_range(-180.0, 180.0)
 
                 conn.execute("INSERT INTO destinations (name, code, latitude, longitude) VALUES (?, ?, ?, ?)", (name, code.upper(), lat, long))
         # Remove

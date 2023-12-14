@@ -24,7 +24,8 @@ def initialise_db() -> sqlite3.Connection:
         CREATE TABLE IF NOT EXISTS pilots (
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            surname TEXT NOT NULL
+            surname TEXT NOT NULL,
+            date_joined DATETIME NOT NULL 
         )
     """)
     conn.execute("""
