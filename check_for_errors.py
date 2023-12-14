@@ -38,6 +38,14 @@ def check_for_errors(conn: sqlite3.Connection):
     else:
         print("All flights have valid destination IDs")
 
+    rows = conn.execute("SELECT flights.id FROM flights LEFT JOIN pilot_flights ON flights.id = pilot_flights.flight_id WHERE pilot_id IS NULL").fetchall()
+    if len(rows) > 0:
+        print("The following flight IDs have no pilots:")
+        for row in rows:
+            print("\t" + str(row[0]))
+    else:
+        print("All flights have at least one pilot")
+
     # Pilot-Flights table row with invalid pilot / flight
     rows = conn.execute("SELECT pilot_flights.pilot_id, pilot_flights.flight_id FROM pilot_flights LEFT JOIN flights ON pilot_flights.flight_id = flights.id WHERE flights.id IS NULL").fetchall()
     if len(rows) > 0:
@@ -59,7 +67,7 @@ def check_for_errors(conn: sqlite3.Connection):
     # Destinations with invalid lat/long
     rows = conn.execute("SELECT id, name from destinations where latitude > 90 OR latitude < -90").fetchall()
     if len(rows) > 0:
-        print("The following flight IDs have an invalid latitude:")
+        print("The following destinations IDs have an invalid latitude:")
         for row in rows:
             print("\t" + str(row[0]) + " (" + row[1] + ")")
     else:
@@ -68,7 +76,7 @@ def check_for_errors(conn: sqlite3.Connection):
     # Contd.
     rows = conn.execute("SELECT id, name from destinations where longitude > 180 OR longitude < -180").fetchall()
     if len(rows) > 0:
-        print("The following flight IDs have an invalid longitude:")
+        print("The following destinations IDs have an invalid longitude:")
         for row in rows:
             print("\t" + str(row[0]) + " (" + row[1] + ")")
     else:
