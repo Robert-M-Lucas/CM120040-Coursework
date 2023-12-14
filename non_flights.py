@@ -31,15 +31,15 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
             rows = conn.execute("SELECT id, code, name, latitude, longitude FROM destinations").fetchall()
             table = [["ID", "Code", "Name", "Latitude", "Longitude"]]
         else: # others_type == NonFlightType.PILOTS:
-            rows = conn.execute("SELECT id, name, surname FROM pilots").fetchall()
+            rows = conn.execute("SELECT id, name, surname, date_joined FROM pilots").fetchall()
             table = [["ID", "Name", "Surname", "Date Joined"]]  # Extra column for pilots
 
         all_ids = []
         for row in rows:
             all_ids.append(int(row[0]))
             if others_type == NonFlightType.PILOTS:
-                # ID, Name, Surname
-                table.append([str(row[0]), row[1], row[2], util.dt_format(util.db_to_dt(row[3]))])
+                # ID, Name, Surname, Date Joined
+                table.append([str(row[0]), row[1], row[2], util.dt_format_no_time(util.db_to_dt(row[3]))])
             elif others_type == NonFlightType.DESTINATIONS:
                 # ID, Code, Name, Lat, Long
                 table.append([str(row[0]), row[1], row[2], str(row[3]), str(row[4])])
@@ -70,7 +70,10 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                 surname = input("> ")
                 print()
 
-                conn.execute("INSERT INTO pilots (name, surname) VALUES (?, ?)", (name, surname))
+                print("Enter date joined:")
+                date_joined = util.get_datetime_no_time()
+
+                conn.execute("INSERT INTO pilots (name, surname, date_joined) VALUES (?, ?, ?)", (name, surname, util.dt_to_db(date_joined)))
             elif others_type == NonFlightType.AIRCRAFT:
                 conn.execute("INSERT INTO aircraft (name) VALUES (?) ", (name,))
             elif others_type == NonFlightType.DESTINATIONS:

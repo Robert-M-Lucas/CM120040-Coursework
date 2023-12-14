@@ -99,7 +99,7 @@ def get_datetime_or_none() -> Optional[datetime]:
     Returns an inputted datetime or None
     """
     while True:
-        print("Enter either the date and time in the format 'dd/mm/yyyy hh:mm' or 'None'")
+        print("Enter either the date and time in the format 'dd/mm/yyyy hh:mm' or 'none'")
         date_str = input("> ")
         print()
         if date_str.lower() == "none": return None
@@ -131,19 +131,25 @@ def get_datetime() -> datetime:
             print("Invalid input")
 
 
-# def get_datetime_no_date() -> datetime:
-#     """
-#     Returns an inputted datetime without prompting the user for a time
-#     """
-#     while True:
-#         print("Enter either the date and time in the format 'dd/mm/yyyy'")
-#         date_str = input("> ")
-#         print()
-#
-#         try:
-#             return datetime.strptime(date_str, "%d/%m/%Y")
-#         except ValueError:
-#             print("Invalid input")
+def get_datetime_no_time() -> datetime:
+    """
+    Returns an inputted datetime without prompting the user for a time
+    """
+    while True:
+        print("Enter either the date and time in the format 'dd/mm/yyyy' or 'now'")
+        date_str = input("> ")
+        print()
+
+        if date_str.lower() == "now":
+            return datetime.now()
+
+        try:
+            dt = datetime.strptime(date_str, "%d/%m/%Y")
+            if dt < datetime.fromtimestamp(0.0):
+                raise ValueError
+            return dt
+        except ValueError:
+            print("Invalid input")
 
 
 def dt_format(dt: datetime) -> str:
@@ -151,6 +157,12 @@ def dt_format(dt: datetime) -> str:
     Formats the datetime as a string
     """
     return dt.strftime("%d/%m/%Y %H:%M")
+
+def dt_format_no_time(dt: datetime) -> str:
+    """
+    Formats the datetime as a string
+    """
+    return dt.strftime("%d/%m/%Y")
 
 
 def print_flight_rows(conn: sqlite3.Connection, rows, limit):
