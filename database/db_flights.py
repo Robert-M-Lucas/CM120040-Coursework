@@ -30,6 +30,9 @@ class FlightData:
 
 
 def modify_flight(conn: sqlite3.Connection, flight_id=None):
+    """
+    Modifies a flight with the given id. If none is passed in, a new flight is created.
+    """
     current_pilots = None
     if flight_id is None:
         data = FlightData()

@@ -8,6 +8,9 @@ from database import db_pilots
 
 
 def print_table(table: list[list[str]]):
+    """
+    Prints a 2D array of strings as a table
+    """
     widths = [0 for _ in range(len(table[0]))]
 
     for row in table:
@@ -21,12 +24,18 @@ def print_table(table: list[list[str]]):
 
 
 def choices(heading: str, options: list[str]) -> int:
+    """
+    Lets user select an option. Returns a 1-indexed choice from the user
+    """
     print(heading)
     print("\n".join([str(i + 1) + ". " + t for i, t in enumerate(options)]))
     return choose_number_from_range(1, len(options))
 
 
 def choose_number() -> int:
+    """
+    Lets user select any number
+    """
     while True:
         try:
             choice = int(input("> "))
@@ -38,6 +47,9 @@ def choose_number() -> int:
 
 
 def choose_number_from_range(minimum: int, maximum: int) -> int:
+    """
+    Lets the user select a number from the given range (inclusive)
+    """
     while True:
         try:
             choice = int(input("> "))
@@ -51,6 +63,9 @@ def choose_number_from_range(minimum: int, maximum: int) -> int:
 
 
 def choose_number_from_options(options: list[int]) -> int:
+    """
+    Lets the user choose a number from the list of options
+    """
     while True:
         try:
             choice = int(input("> "))
@@ -64,6 +79,9 @@ def choose_number_from_options(options: list[int]) -> int:
 
 
 def get_datetime_or_none() -> Optional[datetime]:
+    """
+    Returns an inputted datetime or None
+    """
     while True:
         print("Enter either the date and time in the format 'dd/mm/yyyy hh:mm' or 'None'")
         date_str = input("> ")
@@ -77,6 +95,9 @@ def get_datetime_or_none() -> Optional[datetime]:
 
 
 def get_datetime() -> datetime:
+    """
+    Returns an inputted datetime
+    """
     while True:
         print("Enter either the date and time in the format 'dd/mm/yyyy hh:mm'")
         date_str = input("> ")
@@ -89,10 +110,16 @@ def get_datetime() -> datetime:
 
 
 def dt_format(dt: datetime) -> str:
+    """
+    Formats the datetime as a string
+    """
     return dt.strftime("%d/%m/%Y %H:%M")
 
 
 def print_flight_rows(conn: sqlite3.Connection, rows, limit):
+    """
+    Formats database flight rows into a table
+    """
     table = [["ID", "Departure Time", "Arrival Time", "Source", "Destination", "Aircraft", "Pilot(s)"]]
 
     for i, row in enumerate(rows):
@@ -110,6 +137,7 @@ def print_flight_rows(conn: sqlite3.Connection, rows, limit):
             db_pilots.get_pilot_from_id(conn, pilots[0]) if len(pilots) > 0 else "[NO PILOTS]"
         ])
 
+        # Append additional pilots
         if len(pilots) > 1:
             for p in pilots[1:]:
                 table.append([

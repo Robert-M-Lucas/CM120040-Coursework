@@ -39,6 +39,7 @@ class FlightSearchOptions:
         elif c == 4: self.destinations.modify(conn)
         elif c == 5: self.pilots.modify(conn)
         elif c == 6: self.aircraft.modify(conn)
+        # Change result count
         elif c == 7:
             while True:
                 print("Choose an amount of results to display:")
@@ -53,12 +54,16 @@ class FlightSearchOptions:
                     continue
                 self.count = choice
                 break
+        # Change ordering
         elif c == 8: self.ascending = not self.ascending
+        # Modify flight
         elif c == 9:
             print("Enter flight ID:")
             db_flights.modify_flight(conn, util.choose_number())
+        # New flight
         elif c == 10:
             db_flights.modify_flight(conn, None)
+        # Done
         elif c == 11: return False
 
         return True
@@ -85,8 +90,11 @@ class FlightSearchOptions:
         else:
             conditions = "WHERE " + " AND ".join(conditions)
 
-        rows = conn.execute(f"""
-            SELECT id, departure_time, arrival_time, source_id, destination_id, aircraft_id FROM flights {conditions} ORDER BY departure_time {"ASC" if self.ascending else "DESC"}""", arguments).fetchmany(self.count)
+        rows = conn.execute(
+            f"SELECT id, departure_time, arrival_time, source_id, destination_id, aircraft_id FROM flights "
+            f"{conditions} ORDER BY departure_time {"ASC" if self.ascending else "DESC"}",
+            arguments
+        ).fetchmany(self.count)
 
         util.print_flight_rows(conn, rows, self.count)
 
