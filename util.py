@@ -180,8 +180,8 @@ def print_flight_rows(conn: sqlite3.Connection, rows, limit):
             str(row[0]),
             str(dt_format(db_to_dt(row[1]))),
             str(dt_format(db_to_dt(row[2]))),
-            db_destinations.get_destination_code_from_id(conn, row[3]),
-            db_destinations.get_destination_code_from_id(conn, row[4]),
+            db_destinations.get_destinations_from_id(conn, row[3]),
+            db_destinations.get_destinations_from_id(conn, row[4]),
             db_aircraft.get_aircraft_from_id(conn, row[5]),
             db_pilots.get_pilot_from_id(conn, pilots[0]) if len(pilots) > 0 else "[NO PILOTS]"
         ])
