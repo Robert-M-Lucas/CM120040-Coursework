@@ -34,6 +34,7 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
     page = 0
 
     while True:
+        # Get data
         if others_type == NonFlightType.AIRCRAFT:
             rows = conn.execute(f"SELECT id, name FROM aircraft LIMIT {consts.LIMIT_PER_PAGE + 1} OFFSET {consts.LIMIT_PER_PAGE * page}").fetchall()
             table = [["ID", "Name"]]
@@ -50,6 +51,7 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
             rows = rows[:consts.LIMIT_PER_PAGE]
             has_next = True
 
+        # Add data to table
         for row in rows:
             all_ids.append(int(row[0]))
             if others_type == NonFlightType.PILOTS:
@@ -62,6 +64,7 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                 # ID, Name
                 table.append([str(row[0]), row[1]])
 
+        # Output table
         print(f"Page: {page + 1}")
         util.print_table(table)
         if len(rows) == 0:
@@ -69,7 +72,6 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
         print()
 
         page_text = ["No Previous Page", "No Next Page"]
-
         if page > 0:
             page_text[0] = f"Previous Page ({page})"
         if has_next:
@@ -85,7 +87,6 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
 
         # Add
         if choice == 1:
-            data = {}
             print("Enter name:")
             name = input("> ")
             print()
