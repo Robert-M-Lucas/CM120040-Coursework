@@ -10,6 +10,11 @@ def get_destinations_from_id(conn: sqlite3.Connection, destination_id: int) -> s
     return conn.execute("SELECT name FROM destinations WHERE id=?", (destination_id,)).fetchone()[0]
 
 
+def get_destination_code_from_id(conn: sqlite3.Connection, destination_id: int) -> str:
+    """Returns a destination's name given its ID"""
+    return conn.execute("SELECT code FROM destinations WHERE id=?", (destination_id,)).fetchone()[0]
+
+
 def get_destination_selection(conn: sqlite3.Connection, base_selection: set[int]) -> set[int]:
     """Allows the user to select multiple destinations"""
     page = 0
