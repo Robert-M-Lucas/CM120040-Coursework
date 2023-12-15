@@ -10,6 +10,10 @@ import util
 from typing import Optional, List
 
 
+def flight_exists(conn: sqlite3.Connection, flight: int) -> bool:
+    return conn.execute("SELECT id FROM flights WHERE id = ?", (flight,)).fetchone() is not None
+
+
 @dataclass
 class FlightData:
     source_id: Optional[int] = None

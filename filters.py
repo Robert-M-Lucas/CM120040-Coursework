@@ -91,11 +91,11 @@ class MultiSelection:
     def modify(self, conn: sqlite3.Connection, assignment=False):
         """Allows the user to modify the selection"""
         if self.selection_type == MultiSelectionType.DESTINATION:
-            self.selection = db_destinations.get_destination_selection(conn, self.selection, assignment)
+            self.selection = db_destinations.get_destination_selection(conn, self.selection)
         elif self.selection_type == MultiSelectionType.PILOT:
-            self.selection = db_pilots.get_pilot_selection(conn, self.selection, assignment)
+            self.selection = db_pilots.get_pilot_selection(conn, self.selection)
         elif self.selection_type == MultiSelectionType.AIRCRAFT:
-            self.selection = db_aircraft.get_aircraft_selection(conn, self.selection, assignment)
+            self.selection = db_aircraft.get_aircraft_selection(conn, self.selection)
 
     def to_string(self, conn: sqlite3.Connection, assignment=False) -> str:
         """Converts the selection to a user-readable string"""

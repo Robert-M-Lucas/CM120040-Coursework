@@ -60,7 +60,7 @@ def show_statistics(conn: sqlite3.Connection):
     ).fetchone()
     if row is not None:
         pilot, count = row[0], row[1]
-        print(f"\tPilot with most scheduled flights (all time): {get_pilot_from_id(conn, pilot)} - {count} flight(s)")
+        print(f"\tPilot with most scheduled flights (all time): {get_pilot_from_id(conn, pilot)} [ID: {pilot}] - {count} flight(s)")
 
     print()
 
@@ -73,7 +73,7 @@ def show_statistics(conn: sqlite3.Connection):
     ).fetchone()
     if row is not None:
         destination, count = row[0], row[1]
-        print(f"\tMost popular destination: {get_destinations_from_id(conn, destination)} - {count} flight(s)")
+        print(f"\tMost popular destination: {get_destinations_from_id(conn, destination)} [ID: {destination}] - {count} flight(s)")
 
     start = datetime.now()
     end = datetime.now() + timedelta(days=7)
@@ -83,7 +83,7 @@ def show_statistics(conn: sqlite3.Connection):
     ).fetchone()
     if row is not None:
         destination, count = row[0], row[1]
-        print(f"\tMost popular destination over next week: {get_destinations_from_id(conn, destination)} - {count} flight(s)")
+        print(f"\tMost popular destination over next week: {get_destinations_from_id(conn, destination)} [ID: {destination}] - {count} flight(s)")
 
     print()
 
@@ -94,11 +94,8 @@ def show_statistics(conn: sqlite3.Connection):
     ).fetchone()
     if row is not None:
         aircraft, count = row[0], row[1]
-        print(f"\tMost popular aircraft: {get_aircraft_from_id(conn, aircraft)} - {count} flight(s)")
+        print(f"\tMost popular aircraft: {get_aircraft_from_id(conn, aircraft)} [ID: {aircraft}] - {count} flight(s)")
     print()
 
-
-
-    print()
     input("Press enter...")
     print()

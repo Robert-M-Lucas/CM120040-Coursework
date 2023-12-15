@@ -2,7 +2,7 @@ import sqlite3
 from enum import Enum
 
 import util
-
+import consts
 
 class NonFlightType(Enum):
     AIRCRAFT = 1
@@ -17,24 +17,39 @@ class NonFlightType(Enum):
         elif self == NonFlightType.PILOTS:
             return "Pilot"
 
+    def get_table(self) -> str:
+        if self == NonFlightType.AIRCRAFT:
+            return "aircraft"
+        elif self == NonFlightType.DESTINATIONS:
+            return "destinations"
+        elif self == NonFlightType.PILOTS:
+            return "pilots"
+
 
 def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
     """
     Allows user to view, add and remove data from the aircraft, destination and pilots tables
     """
 
+    page = 0
+
     while True:
         if others_type == NonFlightType.AIRCRAFT:
-            rows = conn.execute("SELECT id, name FROM aircraft").fetchall()
+            rows = conn.execute(f"SELECT id, name FROM aircraft LIMIT {consts.LIMIT_PER_PAGE + 1} OFFSET {consts.LIMIT_PER_PAGE * page}").fetchall()
             table = [["ID", "Name"]]
         elif others_type == NonFlightType.DESTINATIONS:
-            rows = conn.execute("SELECT id, code, name, latitude, longitude FROM destinations").fetchall()
+            rows = conn.execute(f"SELECT id, code, name, latitude, longitude FROM destinations LIMIT {consts.LIMIT_PER_PAGE + 1} OFFSET {consts.LIMIT_PER_PAGE * page}").fetchall()
             table = [["ID", "Code", "Name", "Latitude", "Longitude"]]
-        else: # others_type == NonFlightType.PILOTS:
-            rows = conn.execute("SELECT id, name, surname, date_joined FROM pilots").fetchall()
+        else:  # others_type == NonFlightType.PILOTS:
+            rows = conn.execute(f"SELECT id, name, surname, date_joined FROM pilots LIMIT {consts.LIMIT_PER_PAGE + 1} OFFSET {consts.LIMIT_PER_PAGE * page}").fetchall()
             table = [["ID", "Name", "Surname", "Date Joined"]]  # Extra column for pilots
 
         all_ids = []
+        has_next = False
+        if len(rows) > consts.LIMIT_PER_PAGE:
+            rows = rows[:consts.LIMIT_PER_PAGE]
+            has_next = True
+
         for row in rows:
             all_ids.append(int(row[0]))
             if others_type == NonFlightType.PILOTS:
@@ -47,14 +62,24 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                 # ID, Name
                 table.append([str(row[0]), row[1]])
 
+        print(f"Page: {page + 1}")
         util.print_table(table)
         if len(rows) == 0:
             print("[NO DATA]")
         print()
 
+        page_text = ["No Previous Page", "No Next Page"]
+
+        if page > 0:
+            page_text[0] = f"Previous Page ({page})"
+        if has_next:
+            page_text[1] = f"Next Page ({page + 2})"
+
         choice = util.choices("Select an option:", [
             f"Add {others_type.get_name()}",
             f"Remove {others_type.get_name()}",
+            page_text[0],
+            page_text[1],
             f"Done"
         ])
 
@@ -95,7 +120,11 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
         # Remove
         elif choice == 2:
             print("Enter ID:")
-            _id = util.choose_number_from_options(all_ids)
+            while True:
+                _id = util.choose_number()
+                if conn.execute(f"SELECT id FROM {others_type.get_table()} WHERE id = ?", (_id,)).fetchone() is not None:
+                    break
+                print("Invalid ID")
 
             if others_type == NonFlightType.PILOTS:
                 rows = conn.execute(
@@ -155,7 +184,18 @@ def non_flight_options(conn: sqlite3.Connection, others_type: NonFlightType):
                 elif others_type == NonFlightType.DESTINATIONS:
                     conn.execute("DELETE FROM destinations where id = ?", (_id,))
                 # Flights will be deleted automatically
-        # Done
+
+        # Previous page
         elif choice == 3:
+            if page > 0:
+                page -= 1
+
+        # Next page
+        elif choice == 4:
+            if has_next:
+                page += 1
+
+        # Done
+        elif choice == 5:
             util.ask_commit(conn)
             return
