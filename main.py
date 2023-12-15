@@ -8,6 +8,8 @@ from non_flights import non_flight_options, NonFlightType
 from util import choices
 
 if __name__ == '__main__':
+    print("WARNING: Some tables may not display correctly if the terminal is no wide enough\n")
+
     # Initialise connection and create tables
     conn = db_initialisation.initialise_db()
 
